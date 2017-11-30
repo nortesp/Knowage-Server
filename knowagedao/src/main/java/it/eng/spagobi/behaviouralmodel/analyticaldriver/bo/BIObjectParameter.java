@@ -55,7 +55,6 @@ public class BIObjectParameter implements Serializable {
 	 * LABEL VARCHAR2(36) Y Parameter label in BIObj use (short textual identifier)
 	 */
 	@NotEmpty
-	@ExtendedAlphanumeric
 	@Size(max = 40)
 	private String label = null;
 
@@ -89,7 +88,6 @@ public class BIObjectParameter implements Serializable {
 
 	/* PARURL_NM VARCHAR2(18) Y Parameter name in HTTP request. */
 	@NotEmpty
-	@Alphanumeric
 	@NoSpaces
 	@Size(max = 20)
 	private String parameterUrlName = null;

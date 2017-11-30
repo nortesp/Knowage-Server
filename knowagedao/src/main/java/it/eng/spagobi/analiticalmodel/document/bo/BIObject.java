@@ -72,12 +72,10 @@ public class BIObject implements Serializable, Cloneable {
 
 	// DESCR VARCHAR2(128) Y BI Object description
 	@NotEmpty
-	@ExtendedAlphanumeric
 	@Size(max = 200)
 	private String name = null;
 
 	// DESCR VARCHAR2(128) Y BI Object description
-	@ExtendedAlphanumeric
 	@Size(max = 400)
 	private String description = null;
 
@@ -86,7 +84,6 @@ public class BIObject implements Serializable, Cloneable {
 
 	// LABEL VARCHAR2(36) Y Engine label (short textual identifier)
 	@NotEmpty
-	@Alphanumeric
 	@Size(max = 20)
 	private String label = null;
 
@@ -889,7 +886,7 @@ public class BIObject implements Serializable, Cloneable {
 	@Override
 	public boolean equals(Object v) {
 		if (this == v) return true;
-		
+
 		boolean toReturn = false;
 
 		if (v instanceof BIObject) {
