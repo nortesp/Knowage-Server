@@ -123,19 +123,19 @@ public class DataSetResource extends DataSetResourceAbstractResource {
 			throw new SpagoBIRestServiceException(getLocale(), e);
 		}
 	}
-	
+
 	@GET
 	@Produces(MediaType.APPLICATION_JSON + "; charset=UTF-8")
 	@UserConstraint(functionalities = { SpagoBIConstants.SELF_SERVICE_DATASET_MANAGEMENT })
-	public String getDataSets(@QueryParam("includeDerived") String includeDerived, @QueryParam("callback") String callback, 
-			@QueryParam("asPagedList") Boolean paged, @QueryParam("Page") String pageStr, @QueryParam("ItemPerPage") String itemPerPageStr, 
-			@QueryParam("label") String search, @QueryParam("seeTechnical") Boolean seeTechnical, @QueryParam("ids") String ids) {
+	public String getDataSets(@QueryParam("includeDerived") String includeDerived, @QueryParam("callback") String callback,
+							  @QueryParam("asPagedList") Boolean paged, @QueryParam("Page") String pageStr, @QueryParam("ItemPerPage") String itemPerPageStr,
+							  @QueryParam("label") String search, @QueryParam("seeTechnical") Boolean seeTechnical, @QueryParam("ids") String ids) {
 		logger.debug("IN");
-		
+
 		if ("no".equalsIgnoreCase(includeDerived)) {
 			return getNotDerivedDataSets(callback);
 		}
-		
+
 		if (Boolean.TRUE.equals(paged)) {
 			return getDatasetsAsPagedList(pageStr, itemPerPageStr, search, seeTechnical, ids);
 		}
@@ -166,7 +166,7 @@ public class DataSetResource extends DataSetResourceAbstractResource {
 			return callback + "(" + jsonString + ")";
 		}
 	}
-	
+
 	@GET
 	@Path("/{label}")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -174,7 +174,7 @@ public class DataSetResource extends DataSetResourceAbstractResource {
 	public String getDataSet(@PathParam("label") String label) {
 		return super.getDataSet(label);
 	}
-	
+
 	@GET
 	@Path("/{label}/content")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -253,7 +253,7 @@ public class DataSetResource extends DataSetResourceAbstractResource {
 
 		return Response.ok().build();
 	}
-	
+
 	@DELETE
 	@Path("/{label}")
 	@UserConstraint(functionalities = { SpagoBIConstants.SELF_SERVICE_DATASET_MANAGEMENT })
@@ -268,11 +268,11 @@ public class DataSetResource extends DataSetResourceAbstractResource {
 			IEngUserProfile profile = this.getUserProfile();
 			// TODO check if profile is null
 			dao.setUserProfile(profile);
-	
+
 			Integer page = getNumberOrNull(pageStr);
 			Integer item_per_page = getNumberOrNull(itemPerPageStr);
 			search = search != null ? search : "";
-	
+
 			Integer[] idArray = getIdsAsIntegers(ids);
 
 			List<SbiDataSet> dataset = null;
@@ -301,7 +301,7 @@ public class DataSetResource extends DataSetResourceAbstractResource {
 
 	@Override
 	protected List<FilterCriteria> getFilterCriteria(String datasetLabel, JSONObject selectionsObject, boolean isNearRealtime,
-			Map<String, String> columnAliasToColumnName) throws JSONException {
+													 Map<String, String> columnAliasToColumnName) throws JSONException {
 		List<FilterCriteria> filterCriterias = new ArrayList<>();
 
 		if (selectionsObject.has(datasetLabel)) {
@@ -567,7 +567,7 @@ public class DataSetResource extends DataSetResourceAbstractResource {
 
 	@Override
 	protected List<FilterCriteria> getLikeFilterCriteria(String datasetLabel, JSONObject likeSelectionsObject, boolean isNearRealtime,
-			Map<String, String> columnAliasToColumnName, List<ProjectionCriteria> projectionCriteria, boolean getAttributes) throws JSONException {
+														 Map<String, String> columnAliasToColumnName, List<ProjectionCriteria> projectionCriteria, boolean getAttributes) throws JSONException {
 		List<FilterCriteria> likeFilterCriteria = new ArrayList<>();
 
 		if (likeSelectionsObject.has(datasetLabel)) {
@@ -623,7 +623,7 @@ public class DataSetResource extends DataSetResourceAbstractResource {
 	}
 
 	private List<String> getAttributesOrMeasures(List<String> columnNames, IDataSet dataSet, List<ProjectionCriteria> projectionCriteria,
-			boolean isNearRealtime, boolean getAttributes) {
+												 boolean isNearRealtime, boolean getAttributes) {
 		List<String> attributesOrMeasures = new ArrayList<>();
 
 		String defaultTableNameDot = isNearRealtime ? DEFAULT_TABLE_NAME_DOT : "";
@@ -702,9 +702,9 @@ public class DataSetResource extends DataSetResourceAbstractResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@UserConstraint(functionalities = { SpagoBIConstants.SELF_SERVICE_DATASET_MANAGEMENT })
 	public String getDataStorePost(@PathParam("label") String label, @QueryParam("parameters") String parameters, String selections,
-			@QueryParam("likeSelections") String likeSelections, @DefaultValue("-1") @QueryParam("limit") int maxRowCount,
-			@QueryParam("aggregations") String aggregations, @QueryParam("summaryRow") String summaryRow, @DefaultValue("-1") @QueryParam("offset") int offset,
-			@DefaultValue("-1") @QueryParam("size") int fetchSize, @QueryParam("nearRealtime") boolean isNearRealtime) {
+								   @QueryParam("likeSelections") String likeSelections, @DefaultValue("-1") @QueryParam("limit") int maxRowCount,
+								   @QueryParam("aggregations") String aggregations, @QueryParam("summaryRow") String summaryRow, @DefaultValue("-1") @QueryParam("offset") int offset,
+								   @DefaultValue("-1") @QueryParam("size") int fetchSize, @QueryParam("nearRealtime") boolean isNearRealtime) {
 		logger.debug("IN");
 		try {
 			return getDataStore(label, parameters, selections, likeSelections, maxRowCount, aggregations, summaryRow, offset, fetchSize, isNearRealtime);
