@@ -17,53 +17,8 @@
  */
 package it.eng.spagobi.api.v2;
 
-import static it.eng.spagobi.tools.glossary.util.Util.fromDocumentLight;
-import static it.eng.spagobi.tools.glossary.util.Util.fromObjectParameterListLight;
-import static it.eng.spagobi.tools.glossary.util.Util.getNumberOrNull;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.clerezza.jaxrs.utils.form.MultiPartBody;
-import org.apache.log4j.Logger;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.CorruptIndexException;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryParser.ParseException;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.store.FSDirectory;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import com.jamonapi.Monitor;
 import com.jamonapi.MonitorFactory;
-
 import it.eng.spago.base.SourceBean;
 import it.eng.spago.dbaccess.sql.DataRow;
 import it.eng.spago.error.EMFInternalError;
@@ -71,9 +26,9 @@ import it.eng.spago.error.EMFUserError;
 import it.eng.spago.security.IEngUserProfile;
 import it.eng.spagobi.analiticalmodel.document.AnalyticalModelDocumentManagementAPI;
 import it.eng.spagobi.analiticalmodel.document.bo.BIObject;
+import it.eng.spagobi.analiticalmodel.document.bo.ObjTemplate;
 import it.eng.spagobi.analiticalmodel.document.bo.OutputParameter;
 import it.eng.spagobi.analiticalmodel.document.dao.IBIObjectDAO;
-import it.eng.spagobi.analiticalmodel.document.dao.IObjTemplateDAO;
 import it.eng.spagobi.analiticalmodel.document.dao.IOutputParameterDAO;
 import it.eng.spagobi.api.AbstractDocumentResource;
 import it.eng.spagobi.behaviouralmodel.analyticaldriver.bo.BIObjectParameter;
@@ -83,23 +38,13 @@ import it.eng.spagobi.behaviouralmodel.analyticaldriver.dao.IBIObjectParameterDA
 import it.eng.spagobi.behaviouralmodel.analyticaldriver.dao.IParameterDAO;
 import it.eng.spagobi.behaviouralmodel.analyticaldriver.dao.IParameterUseDAO;
 import it.eng.spagobi.behaviouralmodel.analyticaldriver.dao.ParameterDAOHibImpl;
-import it.eng.spagobi.behaviouralmodel.lov.bo.FixedListDetail;
-import it.eng.spagobi.behaviouralmodel.lov.bo.ILovDetail;
-import it.eng.spagobi.behaviouralmodel.lov.bo.JavaClassDetail;
-import it.eng.spagobi.behaviouralmodel.lov.bo.LovDetailFactory;
-import it.eng.spagobi.behaviouralmodel.lov.bo.ModalitiesValue;
-import it.eng.spagobi.behaviouralmodel.lov.bo.QueryDetail;
-import it.eng.spagobi.behaviouralmodel.lov.bo.ScriptDetail;
+import it.eng.spagobi.behaviouralmodel.lov.bo.*;
 import it.eng.spagobi.commons.bo.CriteriaParameter;
 import it.eng.spagobi.commons.bo.CriteriaParameter.Match;
 import it.eng.spagobi.commons.bo.UserProfile;
 import it.eng.spagobi.commons.constants.SpagoBIConstants;
 import it.eng.spagobi.commons.dao.DAOFactory;
-import it.eng.spagobi.commons.utilities.GeneralUtilities;
-import it.eng.spagobi.commons.utilities.ObjectsAccessVerifier;
-import it.eng.spagobi.commons.utilities.SpagoBIUtilities;
-import it.eng.spagobi.commons.utilities.StringUtilities;
-import it.eng.spagobi.commons.utilities.UserUtilities;
+import it.eng.spagobi.commons.utilities.*;
 import it.eng.spagobi.commons.utilities.indexing.IndexingConstants;
 import it.eng.spagobi.commons.utilities.indexing.LuceneSearcher;
 import it.eng.spagobi.sdk.documents.bo.SDKDocument;
@@ -112,12 +57,36 @@ import it.eng.spagobi.services.rest.annotations.ManageAuthorization;
 import it.eng.spagobi.services.serialization.JsonConverter;
 import it.eng.spagobi.utilities.JSError;
 import it.eng.spagobi.utilities.exceptions.SpagoBIException;
-import it.eng.spagobi.utilities.exceptions.SpagoBIRestServiceException;
 import it.eng.spagobi.utilities.exceptions.SpagoBIRuntimeException;
+import org.apache.clerezza.jaxrs.utils.form.MultiPartBody;
+import org.apache.log4j.Logger;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.CorruptIndexException;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.store.FSDirectory;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.*;
+
+import static it.eng.spagobi.tools.glossary.util.Util.*;
 
 /**
  * @author Alessandro Daniele (alessandro.daniele@eng.it)
- *
  */
 @Path("/2.0/documents")
 @ManageAuthorization
@@ -149,7 +118,7 @@ public class DocumentResource extends AbstractDocumentResource {
 	public Response insertDocument(String body) {
 		return super.insertDocument(body);
 	}
-	
+
 	@GET
 	@Path("/{labelOrId}")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=UTF-8")
@@ -160,11 +129,11 @@ public class DocumentResource extends AbstractDocumentResource {
 
 	@PUT
 	@Path("/{label}")
-	@Produces(MediaType.APPLICATION_JSON )
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response updateDocument(@PathParam("label") String label, String body) {
 		return super.updateDocument(label, body);
 	}
-	
+
 	@DELETE
 	@Path("/{label}")
 	public Response deleteDocument(@PathParam("label") String label) {
@@ -208,7 +177,7 @@ public class DocumentResource extends AbstractDocumentResource {
 	public JSONArray writeParameters(List<JSONObject> params) throws Exception {
 		JSONArray paramsJSON = new JSONArray();
 
-		for (Iterator iterator = params.iterator(); iterator.hasNext();) {
+		for (Iterator iterator = params.iterator(); iterator.hasNext(); ) {
 			JSONObject jsonObject = (JSONObject) iterator.next();
 			paramsJSON.put(jsonObject);
 		}
@@ -437,9 +406,9 @@ public class DocumentResource extends AbstractDocumentResource {
 	@Path("/listDocument")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=UTF-8")
 	public String getDocumentSearchAndPaginate(@QueryParam("Page") String pageStr, @QueryParam("ItemPerPage") String itemPerPageStr,
-			@QueryParam("label") String label, @QueryParam("name") String name, @QueryParam("descr") String descr,
-			@QueryParam("excludeType") String excludeType, @QueryParam("includeType") String includeType, @QueryParam("scope") String scope,
-			@QueryParam("loadObjPar") Boolean loadObjPar, @QueryParam("objLabelNotIn") String objLabelNotIn) throws EMFInternalError {
+											   @QueryParam("label") String label, @QueryParam("name") String name, @QueryParam("descr") String descr,
+											   @QueryParam("excludeType") String excludeType, @QueryParam("includeType") String includeType, @QueryParam("scope") String scope,
+											   @QueryParam("loadObjPar") Boolean loadObjPar, @QueryParam("objLabelNotIn") String objLabelNotIn) throws EMFInternalError {
 		logger.debug("IN");
 		UserProfile profile = getUserProfile();
 		IBIObjectDAO documentsDao = null;
@@ -463,7 +432,7 @@ public class DocumentResource extends AbstractDocumentResource {
 		// see all document of the organization
 		if (scope != null && scope.compareTo("GLOSSARY") == 0) {
 			if (UserUtilities.haveRoleAndAuthorization(profile, SpagoBIConstants.ADMIN_ROLE_TYPE,
-					new String[] { SpagoBIConstants.MANAGE_GLOSSARY_TECHNICAL })) {
+					new String[]{SpagoBIConstants.MANAGE_GLOSSARY_TECHNICAL})) {
 				UserFilter = null;
 			}
 		}
@@ -474,8 +443,8 @@ public class DocumentResource extends AbstractDocumentResource {
 		// Commented out: this kind of logic has to be handled by the
 		// "ObjectsAccessVerifier.canSee" utility method
 		// (ATHENA-138/SBI-532/SBI-533)
-		/*
-		 * if (UserFilter != null) { restritions.add(new CriteriaParameter("creationUser", UserFilter, Match.EQ)); }
+        /*
+         * if (UserFilter != null) { restritions.add(new CriteriaParameter("creationUser", UserFilter, Match.EQ)); }
 		 */
 
 		if (excludeType != null) {
@@ -619,8 +588,8 @@ public class DocumentResource extends AbstractDocumentResource {
 	@GET
 	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=UTF-8")
-	public Response getDocumentsV2(@QueryParam("type") String type, @QueryParam("folderId") String folderIdStr, @QueryParam("date") String date, 
-			@QueryParam("searchKey") String searchKey, @QueryParam("searchAttributes") String attributes, @QueryParam("searchSimilar") Boolean similar) {
+	public Response getDocumentsV2(@QueryParam("type") String type, @QueryParam("folderId") String folderIdStr, @QueryParam("date") String date,
+								   @QueryParam("searchKey") String searchKey, @QueryParam("searchAttributes") String attributes, @QueryParam("searchSimilar") Boolean similar) {
 		logger.debug("IN");
 		IBIObjectDAO documentsDao = null;
 		List<BIObject> allObjects = null;
@@ -635,7 +604,7 @@ public class DocumentResource extends AbstractDocumentResource {
 
 		try {
 			documentsDao = DAOFactory.getBIObjectDAO();
-			// NOTICE: at the time being, filter on date, folder and search key are mutually exclusive, i.e. the service cannot filter on date and folder and 
+			// NOTICE: at the time being, filter on date, folder and search key are mutually exclusive, i.e. the service cannot filter on date and folder and
 			// search for a specified key at the same time
 			if (isDateFilterValid) {
 				logger.debug("Date input parameter found: [" + date + "]. Loading documents before that date...");
@@ -650,7 +619,7 @@ public class DocumentResource extends AbstractDocumentResource {
 				logger.debug("Neither filter on date nor on folder nor a search key was found, loading all documents...");
 				allObjects = documentsDao.loadAllBIObjects();
 			}
-			
+
 			UserProfile profile = getUserProfile();
 			objects = new ArrayList<BIObject>();
 
@@ -893,17 +862,23 @@ public class DocumentResource extends AbstractDocumentResource {
 		}
 
 	}
-	
+
 	@GET
 	@Path("/{label}/template")
 	public Response getDocumentTemplate(@PathParam("label") String label) {
 		return super.getDocumentTemplate(label);
 	}
-	
+
 	@POST
 	@Path("/{label}/template")
 	public Response addDocumentTemplate(@PathParam("label") String label, MultiPartBody input) {
 		return super.addDocumentTemplate(label, input);
+	}
+
+	@POST
+	@Path("/{label}/templateV2")
+	public Response addDocumentTemplateV2(@PathParam("label") String label, ObjTemplate objTemplate) {
+		return super.addDocumentTemplate(label, objTemplate);
 	}
 
 	@DELETE
@@ -912,13 +887,13 @@ public class DocumentResource extends AbstractDocumentResource {
 	public Response deleteCurrentTemplate(@PathParam("label") String label) {
 		return super.deleteCurrentTemplate(label);
 	}
-	
+
 	@DELETE
 	@Path("/{label}/template/{id}")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=UTF-8")
 	public Response deleteTemplateById(@PathParam("label") String label, @PathParam("id") Integer templateId) {
 		return super.deleteTemplateById(label, templateId);
 	}
-	
+
 
 }
