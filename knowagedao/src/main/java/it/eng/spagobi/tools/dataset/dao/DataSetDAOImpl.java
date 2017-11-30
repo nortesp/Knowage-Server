@@ -337,7 +337,7 @@ public class DataSetDAOImpl extends AbstractHibernateDAO implements IDataSetDAO 
 
 	@Override
 	public List<IDataSet> loadDataSets(String owner, Boolean includeOwned, Boolean includePublic, String scope, String type, Set<Domain> categoryList,
-			String implementation, Boolean showDerivedDatasets) {
+									   String implementation, Boolean showDerivedDatasets) {
 
 		List<IDataSet> results;
 		Session session = getSession();
@@ -1561,7 +1561,13 @@ public class DataSetDAOImpl extends AbstractHibernateDAO implements IDataSetDAO 
 				hibDataSet.setDescription(dataSet.getDescription());
 				hibDataSet.setName(dataSet.getName());
 				hibDataSet.setConfiguration(dataSet.getConfiguration());
-				hibDataSet.setType(dataSet.getDsType());
+
+				String type = dataSet.getDsType();
+				if (DataSetConstants.name2Code.containsKey(type)) {
+					type = DataSetConstants.name2Code.get(type);
+				}
+
+				hibDataSet.setType(type);
 				updateSbiCommonInfo4Insert(hibDataSet);
 
 				String userIn = hibDataSet.getCommonInfo().getUserIn();
