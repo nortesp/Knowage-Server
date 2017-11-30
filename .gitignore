@@ -54,3 +54,43 @@ Temporary Items
 # ant folders
 ant-build/
 dist/
+
+# idea project files
+*.iml
+.idea
+
+# build directories
+
+/knowage-core/target
+/knowage/target
+/knowagesdk/target
+/knowagebirtreportengine/target
+/knowage-cas2-sso-service/target
+/knowage-ce-parent/target
+/knowagecockpitengine/target
+/knowagecommonjengine/target
+/knowage-core/target
+/knowagedao/target
+/knowagedatabasescripts/target
+/knowagedataminingengine/target
+/knowagegeoreportengine/target
+/knowagejasperreportengine/target
+/knowagekpiengine/target
+/knowagemeta/target
+/knowagenetworkengine/target
+/knowageoauth2securityprovider/target
+/knowageqbeengine/target
+/knowagesvgviewerengine/target
+/knowagetalendenginclientapi/target
+/knowagetalendengine/target
+/knowageutils/target
+/knowageutilsjson/target
+/knowagewhatifengine/target
+/qbecore/target
+/slimerjs-wrapper/target
+/spagobi.birt.oda/target
+/spagobi-commons-core/target
+/spagobi-cwm/target
+/spagobi-metamodel-core/target
+/spagobi-metamodel-utils/target
+/jdbccore/target
