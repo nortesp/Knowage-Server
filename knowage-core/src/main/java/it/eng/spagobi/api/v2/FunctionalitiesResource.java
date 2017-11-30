@@ -17,30 +17,6 @@
  */
 package it.eng.spagobi.api.v2;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import it.eng.qbe.serializer.SerializationException;
 import it.eng.spago.error.EMFUserError;
 import it.eng.spagobi.analiticalmodel.functionalitytree.bo.LowFunctionality;
@@ -56,6 +32,15 @@ import it.eng.spagobi.services.rest.annotations.ManageAuthorization;
 import it.eng.spagobi.services.rest.annotations.UserConstraint;
 import it.eng.spagobi.utilities.exceptions.SpagoBIRestServiceException;
 import it.eng.spagobi.utilities.rest.RestUtilities;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.*;
 
 /**
  * @author Radmila Selakovic (rselakov, radmila.selakovic@mht.net
@@ -75,7 +60,7 @@ public class FunctionalitiesResource extends AbstractSpagoBIResource {
 	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON + "; charset=UTF-8")
 	public Response getFolders(@DefaultValue("false") @QueryParam("includeDocs") Boolean recoverBIObjects, @QueryParam("perm") String permissionOnFolder,
-			@QueryParam("dateFilter") String dateFilter) {
+							   @QueryParam("dateFilter") String dateFilter) {
 		logger.debug("IN");
 
 		try {
@@ -221,18 +206,18 @@ public class FunctionalitiesResource extends AbstractSpagoBIResource {
 		boolean result = false;
 
 		switch (permission.toUpperCase()) {
-		case SpagoBIConstants.PERMISSION_ON_FOLDER_TO_DEVELOP:
-			result = ObjectsAccessVerifier.canDev(lf, profile);
-			break;
-		case SpagoBIConstants.PERMISSION_ON_FOLDER_TO_TEST:
-			result = ObjectsAccessVerifier.canTest(lf, profile);
-			break;
-		case SpagoBIConstants.PERMISSION_ON_FOLDER_TO_EXECUTE:
-			result = ObjectsAccessVerifier.canExec(lf, profile);
-			break;
-		case SpagoBIConstants.PERMISSION_ON_FOLDER_TO_CREATE:
-			result = ObjectsAccessVerifier.canCreate(lf, profile);
-			break;
+			case SpagoBIConstants.PERMISSION_ON_FOLDER_TO_DEVELOP:
+				result = ObjectsAccessVerifier.canDev(lf, profile);
+				break;
+			case SpagoBIConstants.PERMISSION_ON_FOLDER_TO_TEST:
+				result = ObjectsAccessVerifier.canTest(lf, profile);
+				break;
+			case SpagoBIConstants.PERMISSION_ON_FOLDER_TO_EXECUTE:
+				result = ObjectsAccessVerifier.canExec(lf, profile);
+				break;
+			case SpagoBIConstants.PERMISSION_ON_FOLDER_TO_CREATE:
+				result = ObjectsAccessVerifier.canCreate(lf, profile);
+				break;
 		}
 
 		return result;
@@ -246,7 +231,7 @@ public class FunctionalitiesResource extends AbstractSpagoBIResource {
 
 	@GET
 	@Path("moveUp/{id}")
-	@UserConstraint(functionalities = { SpagoBIConstants.FUNCTIONALITIES_MANAGEMENT })
+	@UserConstraint(functionalities = {SpagoBIConstants.FUNCTIONALITIES_MANAGEMENT})
 	@Produces(MediaType.APPLICATION_JSON + charset)
 	public Response getLowFunctMoveUp(@PathParam("id") Integer id) {
 
@@ -270,7 +255,7 @@ public class FunctionalitiesResource extends AbstractSpagoBIResource {
 
 	@GET
 	@Path("getParent/{id}")
-	@UserConstraint(functionalities = { SpagoBIConstants.FUNCTIONALITIES_MANAGEMENT })
+	@UserConstraint(functionalities = {SpagoBIConstants.FUNCTIONALITIES_MANAGEMENT})
 	@Produces(MediaType.APPLICATION_JSON + charset)
 	public Response getParent(@PathParam("id") Integer id) {
 
@@ -294,7 +279,7 @@ public class FunctionalitiesResource extends AbstractSpagoBIResource {
 
 	@GET
 	@Path("moveDown/{id}")
-	@UserConstraint(functionalities = { SpagoBIConstants.FUNCTIONALITIES_MANAGEMENT })
+	@UserConstraint(functionalities = {SpagoBIConstants.FUNCTIONALITIES_MANAGEMENT})
 	@Produces(MediaType.APPLICATION_JSON + charset)
 	public Response getLowFunctMoveDown(@PathParam("id") Integer id) {
 
@@ -318,7 +303,7 @@ public class FunctionalitiesResource extends AbstractSpagoBIResource {
 
 	@POST
 	@Path("/")
-	@UserConstraint(functionalities = { SpagoBIConstants.FUNCTIONALITIES_MANAGEMENT })
+	@UserConstraint(functionalities = {SpagoBIConstants.FUNCTIONALITIES_MANAGEMENT})
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response insertLowFunctionality(@javax.ws.rs.core.Context HttpServletRequest req) {
 
@@ -378,8 +363,9 @@ public class FunctionalitiesResource extends AbstractSpagoBIResource {
 			lowFunctionality.setDescription(paramsObj.getString("description"));
 			lowFunctionality.setName(paramsObj.getString("name"));
 			lowFunctionality.setPath(paramsObj.getString("path"));
-			lowFunctionality.setParentId(paramsObj.getInt("parentId"));
-
+			if (!paramsObj.get("parentId").equals(JSONObject.NULL)) {
+				lowFunctionality.setParentId(paramsObj.getInt("parentId"));
+			}
 			lowFunctionality = objDao.insertLowFunctionality(lowFunctionality, getUserProfile());
 			return Response.ok(lowFunctionality).build();
 		} catch (Exception e) {
@@ -398,7 +384,7 @@ public class FunctionalitiesResource extends AbstractSpagoBIResource {
 
 	@PUT
 	@Path("/{id}")
-	@UserConstraint(functionalities = { SpagoBIConstants.FUNCTIONALITIES_MANAGEMENT })
+	@UserConstraint(functionalities = {SpagoBIConstants.FUNCTIONALITIES_MANAGEMENT})
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response updateLowFunctionality(@PathParam("id") Integer id, @javax.ws.rs.core.Context HttpServletRequest req) {
 		ILowFunctionalityDAO objDao = null;
@@ -456,7 +442,9 @@ public class FunctionalitiesResource extends AbstractSpagoBIResource {
 			lowFunctionality.setDescription(paramsObj.getString("description"));
 			lowFunctionality.setName(paramsObj.getString("name"));
 			lowFunctionality.setPath(paramsObj.getString("path"));
-			lowFunctionality.setParentId(paramsObj.getInt("parentId"));
+			if (!paramsObj.get("parentId").equals(JSONObject.NULL)) {
+				lowFunctionality.setParentId(paramsObj.getInt("parentId"));
+			}
 			lowFunctionality.setProg(paramsObj.getInt("prog"));
 
 			objDao.modifyLowFunctionality(lowFunctionality);
@@ -478,17 +466,11 @@ public class FunctionalitiesResource extends AbstractSpagoBIResource {
 	 * deleted for all father's children and descendants. This metod recusively scans all father's descendants and saves inside a Set all roles that must be
 	 * erased from the Database.
 	 *
-	 * @param lowFuncParent
-	 *            the parent Functionality
-	 * @param rolesToErase
-	 *            the set containing all roles to erase
-	 *
-	 * @throws EMFUserError
-	 *             if any EMFUserError exception occurs
-	 * @throws BuildOperationException
-	 *             if any BuildOperationException exception occurs
-	 * @throws OperationExecutionException
-	 *             if any OperationExecutionException exception occurs
+	 * @param lowFuncParent the parent Functionality
+	 * @param rolesToErase  the set containing all roles to erase
+	 * @throws EMFUserError                if any EMFUserError exception occurs
+	 * @throws BuildOperationException     if any BuildOperationException exception occurs
+	 * @throws OperationExecutionException if any OperationExecutionException exception occurs
 	 */
 	public void loadRolesToErase(LowFunctionality lowFuncParent, Set rolesToErase) throws EMFUserError {
 		String parentPath = lowFuncParent.getPath();
@@ -588,13 +570,9 @@ public class FunctionalitiesResource extends AbstractSpagoBIResource {
 	/**
 	 * Erases the defined input role from a functionality object, if this one has the role.The updated functionality object is returned.
 	 *
-	 * @param func
-	 *            the input functionality object
-	 * @param roleId
-	 *            the role id for the role to erase
-	 * @param permission
-	 *            the permission of the role to erase
-	 *
+	 * @param func       the input functionality object
+	 * @param roleId     the role id for the role to erase
+	 * @param permission the permission of the role to erase
 	 * @return the updated functionality
 	 */
 	public LowFunctionality eraseRolesFromFunctionality(LowFunctionality func, String roleId, String permission) {
@@ -653,13 +631,9 @@ public class FunctionalitiesResource extends AbstractSpagoBIResource {
 	 * Controls if a particular role belongs to the parent functionality. It is called inside functionalities Jsp in ordet to identify those roles that a child
 	 * functionality is able to select.
 	 *
-	 * @param rule
-	 *            The role id string identifying the role
-	 * @param parentLowFunct
-	 *            the parent low functionality object
-	 * @param permission
-	 *            The role's permission
-	 *
+	 * @param rule           The role id string identifying the role
+	 * @param parentLowFunct the parent low functionality object
+	 * @param permission     The role's permission
 	 * @return True if the role belongs to the parent funct, else false
 	 */
 	public boolean isParentRule(String rule, LowFunctionality parentLowFunct, String permission) {
