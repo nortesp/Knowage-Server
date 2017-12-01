@@ -42,32 +42,16 @@ import it.eng.spagobi.commons.metadata.SbiDomains;
 import it.eng.spagobi.commons.metadata.SbiExtRoles;
 import it.eng.spagobi.commons.utilities.UserUtilities;
 import it.eng.spagobi.utilities.exceptions.SpagoBIRuntimeException;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.Vector;
-
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
-
 import org.apache.log4j.Logger;
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
+import org.hibernate.*;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Expression;
 import org.hibernate.criterion.MatchMode;
+
+import java.util.*;
 
 /**
  * Defines the Hibernate implementations for all DAO methods, for a
@@ -578,14 +562,17 @@ public class LowFunctionalityDAOHibImpl extends AbstractHibernateDAO implements 
 			hibFunct.setName(aLowFunctionality.getName());
 
 			Integer parentId = aLowFunctionality.getParentId();
-			Criteria parentCriteria = aSession.createCriteria(SbiFunctions.class);
-			Criterion parentCriterion = Expression.eq("functId", parentId);
-			parentCriteria.add(parentCriterion);
-			SbiFunctions hibParentFunct = (SbiFunctions) parentCriteria.uniqueResult();
-			if (hibParentFunct == null) {
-				logger.error("The parent Functionality with id = " + parentId + " does not exist.");
-				throw new EMFUserError(EMFErrorSeverity.ERROR, 1037);
-			}
+            SbiFunctions hibParentFunct = null;
+            if(null !=parentId) {
+                Criteria parentCriteria = aSession.createCriteria(SbiFunctions.class);
+                Criterion parentCriterion = Expression.eq("functId", parentId);
+                parentCriteria.add(parentCriterion);
+                hibParentFunct = (SbiFunctions) parentCriteria.uniqueResult();
+                if (hibParentFunct == null) {
+                    logger.error("The parent Functionality with id = " + parentId + " does not exist.");
+                    throw new EMFUserError(EMFErrorSeverity.ERROR, 1037);
+                }
+            }
 			hibFunct.setParentFunct(hibParentFunct);
 
 			// manages code and path
